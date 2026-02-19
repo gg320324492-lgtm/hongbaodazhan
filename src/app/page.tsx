@@ -2,6 +2,22 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+
+// 客户端挂载后才渲染，避免 SSR/hydration 导致客户端异常
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <p className="text-cyan-400 font-mono animate-pulse">加载中...</p>
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useGame } from '../hooks/useGame';
 import { MessageType } from '../types/websocket';
@@ -190,6 +206,7 @@ export default function HomePage() {
   const opponent = gameState ? Array.from(gameState.players.values()).find(p => p.id !== localPlayerId) || null : null;
 
   return (
+    <ClientOnly>
     <main className="min-h-screen relative">
       {appState === 'menu' && (
         <Menu
@@ -293,5 +310,6 @@ export default function HomePage() {
         </div>
       )}
     </main>
+    </ClientOnly>
   );
 }
