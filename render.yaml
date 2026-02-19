@@ -1,0 +1,15 @@
+# Render 部署配置 - WebSocket 游戏服务器
+# 使用方式：在 Render 后台连接 GitHub 仓库后，可自动识别此配置
+# 前端请单独部署到 Vercel
+
+services:
+  - type: web
+    name: game-ws-server
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server/game-server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
