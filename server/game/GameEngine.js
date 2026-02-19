@@ -115,8 +115,9 @@ class GameEngine {
   }
 
   getState() {
+    // Map 无法 JSON 序列化，需转为普通对象
     return {
-      players: this.players,
+      players: Object.fromEntries(this.players.entries()),
       bullets: this.bullets,
       powerUps: this.powerUps,
       particles: this.particles,

@@ -4,6 +4,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { GameState, Player, Bullet, PowerUp } from '../types/game';
 import { GameStatus } from '../types/game';
+import { normalizeGameState } from '../lib/game/normalizeGameState';
 
 export function useGame() {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -11,8 +12,9 @@ export function useGame() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  const updateGameState = useCallback((newState: GameState) => {
-    setGameState(newState);
+  const updateGameState = useCallback((newState: GameState | Record<string, unknown>) => {
+    const normalized = normalizeGameState(newState as GameState);
+    if (normalized) setGameState(normalized);
   }, []);
 
   const setLocalPlayer = useCallback((playerId: string) => {
