@@ -125,15 +125,12 @@ class WebSocketHandler {
       player.x = msg.x;
       player.y = msg.y;
       player.angle = msg.angle;
-    }
-
-    // 广播给对手
-    const opponent = room.getOpponent(playerId);
-    if (opponent) {
-      opponent.ws.send(JSON.stringify({
+      
+      // 立即广播给所有玩家（包括发送者），确保位置同步
+      room.broadcast({
         type: 'game_state',
         gameState: room.getGameState(),
-      }));
+      });
     }
   }
 
@@ -162,7 +159,7 @@ class WebSocketHandler {
 
     room.gameEngine.bullets.push(bullet);
 
-    // 广播子弹
+    // 立即广播给所有玩家，确保子弹同步
     room.broadcast({
       type: 'game_state',
       gameState: room.getGameState(),

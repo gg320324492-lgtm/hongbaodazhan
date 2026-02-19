@@ -27,6 +27,8 @@ export default function GameCanvas({
   const animationFrameRef = useRef<number | null>(null);
   const lastMousePosRef = useRef<{ x: number; y: number } | null>(null);
   const isShootingRef = useRef(false);
+  const lastMoveTimeRef = useRef<number>(0);
+  const MOVE_THROTTLE_MS = 50; // 每50ms最多发送一次移动消息
 
   // 渲染函数
   const render = useCallback(() => {
@@ -204,6 +206,13 @@ export default function GameCanvas({
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!canvasRef.current || !localPlayerId || !gameState) return;
 
+    const now = Date.now();
+    // 节流：限制移动消息发送频率
+    if (now - lastMoveTimeRef.current < MOVE_THROTTLE_MS) {
+      return;
+    }
+    lastMoveTimeRef.current = now;
+
     const rect = canvasRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
@@ -211,23 +220,26 @@ export default function GameCanvas({
     const localPlayer = Array.from(gameState.players.values()).find(
       p => p.id === localPlayerId
     );
-    if (!localPlayer) return;
+    
+    // 如果本地玩家不存在，使用画布中心作为参考
+    const baseX = localPlayer?.x ?? width / 2;
+    const baseY = localPlayer?.y ?? height / 2;
 
     // 更新玩家角度
-    const angle = Math.atan2(y - localPlayer.y, x - localPlayer.x);
+    const angle = Math.atan2(y - baseY, x - baseX);
     
     // 更新玩家位置（跟随鼠标，但有边界限制）
-    const dx = x - localPlayer.x;
-    const dy = y - localPlayer.y;
+    const dx = x - baseX;
+    const dy = y - baseY;
     const distance = Math.sqrt(dx * dx + dy * dy);
     const maxDistance = 50; // 最大跟随距离
 
-    let newX = localPlayer.x;
-    let newY = localPlayer.y;
+    let newX = baseX;
+    let newY = baseY;
 
     if (distance > maxDistance) {
-      newX = localPlayer.x + (dx / distance) * maxDistance;
-      newY = localPlayer.y + (dy / distance) * maxDistance;
+      newX = baseX + (dx / distance) * maxDistance;
+      newY = baseY + (dy / distance) * maxDistance;
     } else {
       newX = x;
       newY = y;
