@@ -286,9 +286,19 @@ export class GameEngine {
    * 检查胜利条件
    */
   private checkWinCondition(): void {
+    // 游戏刚开始时（时间很短），不检查胜利条件
+    if (this.state.gameTime < 1000) {
+      return;
+    }
+
     const alivePlayers = Array.from(this.state.players.values()).filter(
       p => p.health > 0
     );
+
+    // 至少需要2个玩家才开始检查
+    if (this.state.players.size < 2) {
+      return;
+    }
 
     if (alivePlayers.length === 1) {
       this.state.winner = alivePlayers[0].id;

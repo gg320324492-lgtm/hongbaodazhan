@@ -106,8 +106,11 @@ class WebSocketHandler {
     if (!player) return;
 
     if (room.startGame()) {
+      // 发送游戏开始消息和初始游戏状态
+      const gameState = room.getGameState();
       room.broadcast({
         type: 'game_started',
+        gameState: gameState,
       });
     }
   }

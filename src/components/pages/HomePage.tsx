@@ -56,12 +56,25 @@ export default function HomePage() {
 
     const handleGameStarted = (message: any) => {
       if (message.type === MessageType.GAME_STARTED) {
+        // 使用服务器发送的游戏状态，而不是自己创建
+        if (message.gameState) {
+          updateGameState(message.gameState);
+        }
         gameEngine.initialize();
         if (localPlayerId) {
           gameEngine.addPlayer(localPlayerId, 100, 300);
         }
-        const opponentId = 'opponent_' + Date.now();
-        gameEngine.addPlayer(opponentId, 700, 300);
+        // 从服务器状态中获取对手ID
+        if (message.gameState?.players) {
+          const players = message.gameState.players instanceof Map 
+            ? message.gameState.players 
+            : new Map(Object.entries(message.gameState.players));
+          players.forEach((player: any, id: string) => {
+            if (id !== localPlayerId) {
+              gameEngine.addPlayer(id, player.x || 700, player.y || 300);
+            }
+          });
+        }
         gameEngine.startGame();
         setAppState('playing');
         setGameTimeLeft(180);
