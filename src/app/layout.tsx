@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "双人接红包",
-  description: "双人接红包游戏 - 本地同屏 / 联网对战",
+  title: "Cyber Battle - Dual Player Shooter",
+  description: "赛博朋克风格双人弹幕射击PK游戏",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -25,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased bg-black text-cyan-400">{children}</body>
     </html>
   );
 }
