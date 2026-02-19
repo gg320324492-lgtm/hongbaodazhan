@@ -8,9 +8,6 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
   },
-  mobileWebApp: {
-    capable: true,
-  },
 };
 
 export const viewport: Viewport = {
