@@ -18,6 +18,7 @@ type AppState = 'menu' | 'create' | 'join' | 'waiting' | 'playing' | 'ended';
 export default function HomePage() {
   const [appState, setAppState] = useState<AppState>('menu');
   const [roomId, setRoomId] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const [gameEngine] = useState(() => new GameEngine(DEFAULT_GAME_CONFIG));
   const [gameTimeLeft, setGameTimeLeft] = useState(180);
   const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
@@ -81,8 +82,18 @@ export default function HomePage() {
       }
     };
 
+    const handleRoomNotFound = (message: any) => {
+      setJoinError(message.message || '房间不存在');
+    };
+
+    const handleRoomFull = (message: any) => {
+      setJoinError(message.message || '房间已满');
+    };
+
     on(MessageType.ROOM_CREATED, handleRoomCreated);
     on(MessageType.ROOM_JOINED, handleRoomJoined);
+    on(MessageType.ROOM_NOT_FOUND, handleRoomNotFound);
+    on(MessageType.ROOM_FULL, handleRoomFull);
     on(MessageType.PLAYER_JOINED, handlePlayerJoined);
     on(MessageType.GAME_STARTED, handleGameStarted);
     on(MessageType.GAME_STATE, handleGameState);
@@ -182,14 +193,14 @@ export default function HomePage() {
     <main className="min-h-screen relative">
       {appState === 'menu' && (
         <Menu
-          onLocalGame={() => {
-            // 本地游戏模式（待实现）
-            console.log('Local game not implemented yet');
+          onCreateRoom={async () => {
+            await connect();
+            setAppState('create');
           }}
-          onOnlineGame={() => {
-            connect().then(() => {
-              setAppState('create');
-            });
+          onJoinRoom={async () => {
+            setJoinError(null);
+            await connect();
+            setAppState('join');
           }}
         />
       )}
@@ -206,30 +217,36 @@ export default function HomePage() {
       {appState === 'join' && (
         <RoomJoin
           isConnecting={!isConnected}
-          error={error}
-          onJoinRoom={handleJoinRoom}
-          onBack={handleBackToMenu}
+          error={error || joinError}
+          onJoinRoom={(id) => {
+            setJoinError(null);
+            handleJoinRoom(id);
+          }}
+          onBack={() => {
+            setJoinError(null);
+            handleBackToMenu();
+          }}
         />
       )}
 
       {appState === 'waiting' && roomId && (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-purple-900 to-black">
           <div className="text-center space-y-4">
-            <p className="text-cyan-400 font-mono text-xl">Room: {roomId}</p>
-            <p className="text-pink-500 font-mono animate-pulse">Waiting for opponent...</p>
+            <p className="text-cyan-400 font-mono text-xl">房间号：{roomId}</p>
+            <p className="text-pink-500 font-mono animate-pulse">等待对手加入…</p>
             {localPlayerId && (
               <button
                 onClick={handleStartGame}
-                className="px-6 py-3 bg-cyan-400 text-black font-mono font-bold uppercase hover:bg-cyan-300 transition-colors"
+                className="px-6 py-3 bg-cyan-400 text-black font-mono font-bold hover:bg-cyan-300 transition-colors"
               >
-                Start Game
+                开始游戏
               </button>
             )}
             <button
               onClick={handleBackToMenu}
-              className="px-6 py-3 border-2 border-pink-500 text-pink-500 font-mono font-bold uppercase hover:bg-pink-500 hover:text-black transition-colors"
+              className="px-6 py-3 border-2 border-pink-500 text-pink-500 font-mono font-bold hover:bg-pink-500 hover:text-black transition-colors"
             >
-              Back
+              返回
             </button>
           </div>
         </div>
@@ -260,17 +277,17 @@ export default function HomePage() {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-purple-900 to-black">
           <div className="text-center space-y-6">
             <h2 className="text-4xl font-bold font-mono text-cyan-400">
-              {gameState.winner === localPlayerId ? 'YOU WIN!' : 'YOU LOSE!'}
+              {gameState.winner === localPlayerId ? '你赢了！' : '你输了！'}
             </h2>
             <div className="space-y-2">
-              <p className="text-cyan-400 font-mono">Your Score: {localPlayer?.score || 0}</p>
-              <p className="text-pink-500 font-mono">Opponent Score: {opponent?.score || 0}</p>
+              <p className="text-cyan-400 font-mono">你的得分：{localPlayer?.score || 0}</p>
+              <p className="text-pink-500 font-mono">对手得分：{opponent?.score || 0}</p>
             </div>
             <button
               onClick={handleBackToMenu}
-              className="px-6 py-3 bg-cyan-400 text-black font-mono font-bold uppercase hover:bg-cyan-300 transition-colors"
+              className="px-6 py-3 bg-cyan-400 text-black font-mono font-bold hover:bg-cyan-300 transition-colors"
             >
-              Back to Menu
+              返回主菜单
             </button>
           </div>
         </div>

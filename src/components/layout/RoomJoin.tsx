@@ -25,16 +25,16 @@ export default function RoomJoin({ isConnecting, error, onJoinRoom, onBack }: Ro
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-purple-900 to-black">
       <div className="bg-black/80 border-2 border-pink-500 p-8 max-w-md w-full mx-4 shadow-[0_0_30px_rgba(255,0,255,0.5)]">
-        <h2 className="text-3xl font-bold font-mono text-pink-500 mb-6 text-center uppercase tracking-wider">
-          Join Room
+        <h2 className="text-3xl font-bold font-mono text-pink-500 mb-6 text-center">
+          加入房间
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
-            label="Room ID"
+            label="房间号"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value.toUpperCase())}
-            placeholder="Enter room ID"
+            placeholder="输入房间号"
             maxLength={8}
             disabled={isConnecting}
             className="text-center text-lg"
@@ -52,13 +52,13 @@ export default function RoomJoin({ isConnecting, error, onJoinRoom, onBack }: Ro
             disabled={!roomId.trim() || isConnecting}
             className="w-full"
           >
-            {isConnecting ? 'Connecting...' : 'Join Room'}
+            {isConnecting ? '连接中…' : '加入房间'}
           </Button>
         </form>
 
         <div className="mt-6">
           <Button variant="secondary" onClick={onBack} className="w-full">
-            Back
+            返回
           </Button>
         </div>
       </div>

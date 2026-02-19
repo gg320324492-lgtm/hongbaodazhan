@@ -4,11 +4,11 @@
 import { Button } from '../ui/Button';
 
 interface MenuProps {
-  onLocalGame: () => void;
-  onOnlineGame: () => void;
+  onCreateRoom: () => void;
+  onJoinRoom: () => void;
 }
 
-export default function Menu({ onLocalGame, onOnlineGame }: MenuProps) {
+export default function Menu({ onCreateRoom, onJoinRoom }: MenuProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-purple-900 to-black relative overflow-hidden">
       {/* 背景动画效果 */}
@@ -20,10 +20,10 @@ export default function Menu({ onLocalGame, onOnlineGame }: MenuProps) {
         {/* 标题 */}
         <div className="space-y-4">
           <h1 className="text-6xl md:text-8xl font-bold font-mono text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-purple-500 animate-pulse">
-            CYBER BATTLE
+            赛博大战
           </h1>
           <p className="text-cyan-400/70 font-mono text-sm uppercase tracking-widest">
-            Dual Player Shooter
+            双人弹幕射击
           </p>
         </div>
 
@@ -31,24 +31,24 @@ export default function Menu({ onLocalGame, onOnlineGame }: MenuProps) {
         <div className="flex flex-col gap-4 items-center">
           <Button
             variant="primary"
-            onClick={onLocalGame}
+            onClick={onCreateRoom}
             className="w-full max-w-xs"
           >
-            Local Battle
+            创建房间
           </Button>
           <Button
             variant="secondary"
-            onClick={onOnlineGame}
+            onClick={onJoinRoom}
             className="w-full max-w-xs"
           >
-            Online Battle
+            加入房间
           </Button>
         </div>
 
         {/* 说明文字 */}
         <div className="mt-12 space-y-2 text-cyan-400/50 font-mono text-xs">
-          <p>Move: Mouse / Touch</p>
-          <p>Shoot: Space / Click</p>
+          <p>移动：鼠标 / 触摸</p>
+          <p>射击：空格 / 点击</p>
         </div>
       </div>
     </div>
