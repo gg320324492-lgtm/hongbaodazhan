@@ -35,6 +35,7 @@ export default function HomePage() {
   const [appState, setAppState] = useState<AppState>('menu');
   const [roomId, setRoomId] = useState<string | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [opponentJoined, setOpponentJoined] = useState(false);
   const [gameEngine] = useState(() => new GameEngine(DEFAULT_GAME_CONFIG));
   const [gameTimeLeft, setGameTimeLeft] = useState(180);
   const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
@@ -51,6 +52,7 @@ export default function HomePage() {
         setRoomId(message.roomId);
         setLocalPlayer(message.playerId);
         setRoom(message.roomId);
+        setOpponentJoined(false); // 房主创建房间时，对手尚未加入
         setAppState('waiting');
       }
     };
@@ -60,13 +62,14 @@ export default function HomePage() {
         setRoomId(message.roomId);
         setLocalPlayer(message.playerId);
         setRoom(message.roomId);
+        setOpponentJoined(true); // 加入者进入时，房主已在房间
         setAppState('waiting');
       }
     };
 
     const handlePlayerJoined = (message: any) => {
       if (message.type === MessageType.PLAYER_JOINED) {
-        // 对手加入，可以开始游戏
+        setOpponentJoined(true);
       }
     };
 
@@ -198,6 +201,7 @@ export default function HomePage() {
     disconnect();
     resetGame();
     setRoomId(null);
+    setOpponentJoined(false);
     setAppState('menu');
   }, [disconnect, resetGame]);
 
@@ -250,7 +254,9 @@ export default function HomePage() {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-purple-900 to-black">
           <div className="text-center space-y-4">
             <p className="text-cyan-400 font-mono text-xl">房间号：{roomId}</p>
-            <p className="text-pink-500 font-mono animate-pulse">等待对手加入…</p>
+            <p className="text-pink-500 font-mono animate-pulse">
+              {opponentJoined ? '对手已加入，点击下方开始游戏' : '等待对手加入…'}
+            </p>
             {localPlayerId && (
               <button
                 onClick={handleStartGame}

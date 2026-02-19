@@ -101,8 +101,9 @@ class WebSocketHandler {
     const room = this.rooms.get(ws.roomId);
     if (!room || !room.isFull()) return;
 
+    // 房间满员后，房主或加入者均可发起开始
     const player = room.getPlayer(playerId);
-    if (!player || player !== room.player1) return; // 只有房主可以开始
+    if (!player) return;
 
     if (room.startGame()) {
       room.broadcast({
