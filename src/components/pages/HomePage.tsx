@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useGame } from '../../hooks/useGame';
 import { MessageType } from '../../types/websocket';
-import { GameEngine, DEFAULT_GAME_CONFIG } from '../../lib/game/engine';
+import { DEFAULT_GAME_CONFIG } from '../../lib/game/engine';
 import Menu from '../layout/Menu';
 import RoomCreate from '../layout/RoomCreate';
 import RoomJoin from '../layout/RoomJoin';
@@ -18,9 +18,7 @@ export default function HomePage() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [opponentJoined, setOpponentJoined] = useState(false);
-  const [gameEngine] = useState(() => new GameEngine(DEFAULT_GAME_CONFIG));
   const [gameTimeLeft, setGameTimeLeft] = useState(180);
-  const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
 
   const { isConnected, error, connect, disconnect, send, on } = useWebSocket();
   const { gameState, localPlayerId, updateGameState, setLocalPlayer, setRoom, resetGame } = useGame();
@@ -56,34 +54,26 @@ export default function HomePage() {
 
     const handleGameStarted = (message: any) => {
       if (message.type === MessageType.GAME_STARTED) {
-        // 使用服务器发送的游戏状态，而不是自己创建
+        // 完全使用服务器状态，不运行本地游戏逻辑
         if (message.gameState) {
           updateGameState(message.gameState);
+          const timeLeft = Math.max(0, 180 - Math.floor((message.gameState.gameTime || 0) / 1000));
+          setGameTimeLeft(timeLeft);
         }
-        gameEngine.initialize();
-        if (localPlayerId) {
-          gameEngine.addPlayer(localPlayerId, 100, 300);
-        }
-        // 从服务器状态中获取对手ID
-        if (message.gameState?.players) {
-          const players = message.gameState.players instanceof Map 
-            ? message.gameState.players 
-            : new Map(Object.entries(message.gameState.players));
-          players.forEach((player: any, id: string) => {
-            if (id !== localPlayerId) {
-              gameEngine.addPlayer(id, player.x || 700, player.y || 300);
-            }
-          });
-        }
-        gameEngine.startGame();
         setAppState('playing');
-        setGameTimeLeft(180);
       }
     };
 
     const handleGameState = (message: any) => {
       if (message.type === MessageType.GAME_STATE) {
-        updateGameState(message.gameState);
+        const state = message.gameState;
+        updateGameState(state);
+        const timeLeft = Math.max(0, 180 - Math.floor((state?.gameTime || 0) / 1000));
+        setGameTimeLeft(timeLeft);
+        // 游戏结束仅由服务器状态驱动
+        if (state?.gameStatus === 'ended') {
+          setAppState('ended');
+        }
       }
     };
 
@@ -111,30 +101,7 @@ export default function HomePage() {
     on(MessageType.ERROR, handleError);
 
     return () => {};
-  }, [isConnected, on, localPlayerId, gameEngine, updateGameState, setLocalPlayer, setRoom]);
-
-  useEffect(() => {
-    if (appState !== 'playing') return;
-
-    const gameLoop = () => {
-      const now = Date.now();
-      const deltaTime = now - lastUpdateTime;
-      gameEngine.update(deltaTime);
-      const state = gameEngine.getState();
-      updateGameState(state);
-      const timeLeft = Math.max(0, 180 - Math.floor(state.gameTime / 1000));
-      setGameTimeLeft(timeLeft);
-      if (state.gameStatus === 'ended') {
-        setAppState('ended');
-      }
-      setLastUpdateTime(now);
-      requestAnimationFrame(gameLoop);
-    };
-
-    setLastUpdateTime(Date.now());
-    const frameId = requestAnimationFrame(gameLoop);
-    return () => cancelAnimationFrame(frameId);
-  }, [appState, gameEngine, updateGameState, lastUpdateTime]);
+  }, [isConnected, on, updateGameState, setLocalPlayer, setRoom]);
 
   const handleCreateRoom = useCallback(async () => {
     if (!isConnected) await connect();

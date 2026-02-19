@@ -119,9 +119,8 @@ class WebSocketHandler {
     const room = this.rooms.get(ws.roomId);
     if (!room || room.gameState !== 'playing') return;
 
-    // 更新玩家位置（在游戏引擎中）
-    const gameState = room.getGameState();
-    const player = gameState.players.get(playerId);
+    // 更新玩家位置（使用引擎的 Map，getState 返回的是普通对象）
+    const player = room.gameEngine.players.get(playerId);
     if (player) {
       player.x = msg.x;
       player.y = msg.y;
@@ -142,11 +141,10 @@ class WebSocketHandler {
     const room = this.rooms.get(ws.roomId);
     if (!room || room.gameState !== 'playing') return;
 
-    const gameState = room.getGameState();
-    const player = gameState.players.get(playerId);
+    const player = room.gameEngine.players.get(playerId);
     if (!player) return;
 
-    // 创建子弹
+    // 创建子弹（直接操作引擎的 bullets）
     const bullet = {
       id: `bullet_${Date.now()}_${Math.random()}`,
       x: player.x,
@@ -162,7 +160,7 @@ class WebSocketHandler {
       maxLifetime: 2000,
     };
 
-    gameState.bullets.push(bullet);
+    room.gameEngine.bullets.push(bullet);
 
     // 广播子弹
     room.broadcast({

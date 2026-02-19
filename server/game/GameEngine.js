@@ -78,6 +78,20 @@ class GameEngine {
 
     // 碰撞检测
     this.checkCollisions();
+    // 胜利条件：仅当游戏进行超过1秒后检查
+    if (this.gameTime > 1000) {
+      this.checkWinCondition();
+    }
+  }
+
+  checkWinCondition() {
+    const alive = Array.from(this.players.values()).filter(p => p.health > 0);
+    if (this.players.size >= 2 && alive.length === 1) {
+      this.winner = alive[0].id;
+      this.endGame();
+    } else if (alive.length === 0) {
+      this.endGame();
+    }
   }
 
   checkCollisions() {
