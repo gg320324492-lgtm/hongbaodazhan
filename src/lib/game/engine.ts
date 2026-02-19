@@ -1,6 +1,6 @@
 // 游戏引擎核心
-import type { GameState, GameStatus, GameConfig, Player, Bullet, PowerUp, Particle } from '../../types/game';
-import { WeaponType, PowerUpType } from '../../types/game';
+import type { GameState, GameConfig, Player, Bullet, PowerUp, Particle } from '../../types/game';
+import { WeaponType, PowerUpType, GameStatus } from '../../types/game';
 import { createPlayer, updatePlayerPosition, updatePlayerAngle, damagePlayer, updateShield } from './player';
 import { updateBullet, isBulletExpired, isBulletOutOfBounds } from './bullet';
 import { updatePowerUp, isPowerUpExpired } from './powerup';

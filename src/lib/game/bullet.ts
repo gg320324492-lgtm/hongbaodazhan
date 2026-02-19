@@ -1,5 +1,6 @@
 // 子弹逻辑
-import type { Bullet, WeaponType } from '../../types/game';
+import type { Bullet } from '../../types/game';
+import { WeaponType } from '../../types/game';
 import { angle, distance } from '../utils/math';
 
 export const WEAPON_CONFIG: Record<WeaponType, {

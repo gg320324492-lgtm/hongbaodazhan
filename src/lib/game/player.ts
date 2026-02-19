@@ -1,5 +1,6 @@
 // 玩家逻辑
-import type { Player, WeaponType } from '../../types/game';
+import type { Player } from '../../types/game';
+import { WeaponType } from '../../types/game';
 import { clampToBounds } from './physics';
 
 export const DEFAULT_PLAYER_CONFIG = {

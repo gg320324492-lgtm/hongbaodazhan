@@ -1,7 +1,7 @@
 // 道具逻辑
-import type { PowerUp, PowerUpType } from '../../types/game';
+import type { PowerUp } from '../../types/game';
+import { PowerUpType } from '../../types/game';
 import { random } from '../utils/math';
-import { PowerUpType as PowerUpTypeEnum } from '../../types/game';
 
 export const POWERUP_CONFIG: Record<string, {
   lifetime: number;
@@ -44,7 +44,7 @@ export function createPowerUp(
   y: number,
   type?: PowerUpType
 ): PowerUp {
-  const types = Object.values(PowerUpTypeEnum);
+  const types = Object.values(PowerUpType);
   const powerUpType = type || (types[Math.floor(random(0, types.length))] as PowerUpType);
   const config = POWERUP_CONFIG[powerUpType];
   

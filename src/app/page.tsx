@@ -6,7 +6,6 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useGame } from '../hooks/useGame';
 import { MessageType } from '../types/websocket';
 import type { GameState } from '../types/game';
-import { GameStatus } from '../types/game';
 import { GameEngine, DEFAULT_GAME_CONFIG } from '../lib/game/engine';
 import Menu from '../components/layout/Menu';
 import RoomCreate from '../components/layout/RoomCreate';
@@ -110,7 +109,7 @@ export default function HomePage() {
       const timeLeft = Math.max(0, 180 - Math.floor(state.gameTime / 1000));
       setGameTimeLeft(timeLeft);
 
-      if (state.gameStatus === GameStatus.ENDED) {
+      if (state.gameStatus === 'ended') {
         setAppState('ended');
       }
 
