@@ -9,11 +9,31 @@ const BASKET_WIDTH = 56;
 const BASKET_HEIGHT = 40;
 const ENVELOPE_SIZE = 40;
 
-const WS_URL =
-  typeof window !== 'undefined'
-    ? process.env.NEXT_PUBLIC_WS_URL ||
-      `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:3001`
-    : 'ws://localhost:3001';
+const getWebSocketUrl = () => {
+  if (typeof window === 'undefined') {
+    return 'ws://localhost:3001';
+  }
+  
+  // 优先使用环境变量配置的WebSocket地址
+  if (process.env.NEXT_PUBLIC_WS_URL) {
+    return process.env.NEXT_PUBLIC_WS_URL;
+  }
+  
+  // 如果是生产环境（HTTPS），使用WSS协议
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const hostname = window.location.hostname;
+  
+  // 如果是localhost或127.0.0.1，使用本地WebSocket服务器
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
+    return `${protocol}://${hostname}:3001`;
+  }
+  
+  // 生产环境应该配置NEXT_PUBLIC_WS_URL，如果没有配置则提示错误
+  console.warn('警告: 未配置 NEXT_PUBLIC_WS_URL 环境变量，WebSocket连接可能失败');
+  return `${protocol}://${hostname}:3001`;
+};
+
+const WS_URL = getWebSocketUrl();
 
 interface RedEnvelope {
   id: number;
@@ -202,17 +222,41 @@ export default function CatchRedEnvelopeGame() {
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
+    // 添加连接超时处理（5秒）
+    const timeoutId = setTimeout(() => {
+      if (ws.readyState !== WebSocket.OPEN) {
+        ws.close();
+        setWsError(`连接超时，无法连接到 WebSocket 服务器 (${WS_URL})。请确认服务器已启动。`);
+        setWsConnected(false);
+        if (onlineState === 'create' || onlineState === 'join') {
+          setOnlineState('idle');
+        }
+      }
+    }, 5000);
+
     ws.onopen = () => {
+      clearTimeout(timeoutId);
       setWsConnected(true);
       onOpen?.();
     };
     ws.onclose = () => {
+      clearTimeout(timeoutId);
       setWsConnected(false);
       if (onlineState === 'waiting' || onlineState === 'playing') {
         setWsError('连接已断开');
+      } else if (onlineState === 'create' || onlineState === 'join') {
+        setWsError('连接失败，请确认游戏服务器已启动');
+        setOnlineState('idle');
       }
     };
-    ws.onerror = () => setWsError('连接失败，请确认游戏服务器已启动');
+    ws.onerror = () => {
+      clearTimeout(timeoutId);
+      setWsError(`连接失败，无法连接到 WebSocket 服务器 (${WS_URL})。请确认服务器已启动。`);
+      setWsConnected(false);
+      if (onlineState === 'create' || onlineState === 'join') {
+        setOnlineState('idle');
+      }
+    };
 
     ws.onmessage = (e) => {
       try {
